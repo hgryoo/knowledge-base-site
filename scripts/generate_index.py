@@ -12,11 +12,11 @@ import sys
 from pathlib import Path
 
 CATEGORY_DESCRIPTIONS = {
-    "code-analysis": "오픈소스 DBMS 내부 — 현재는 CUBRID 코드베이스를 storage / MVCC / lock manager 단위로 뜯어본 노트입니다.",
-    "research": "교과서·논문에서 정리한 데이터베이스 시스템 노트.",
-    "note": "작업 노트와 잡다한 캡처.",
-    "experiment": "가설 기반 실험과 결과 정리.",
-    "ideas": "당장은 설익었지만 살려두고 싶은 아이디어.",
+    "code-analysis": "Open-source DBMS internals — currently a line-by-line read of the CUBRID codebase, broken down by storage, MVCC, and lock manager.",
+    "research": "Notes captured from textbooks and papers on database systems.",
+    "note": "Working notes and miscellaneous captures.",
+    "experiment": "Hypothesis-driven experiments and their write-ups.",
+    "ideas": "Half-baked ideas worth keeping around.",
 }
 
 CATEGORY_ORDER = ["code-analysis", "research", "experiment", "ideas", "note"]
@@ -69,14 +69,15 @@ def main() -> int:
     out.append("---")
     out.append("")
     out.append(
-        "DBMS 내부 구조와 코드 분석을 정리해 두는 곳입니다. CUBRID 코드베이스를 "
-        "중심으로 storage, MVCC, lock manager 같은 핵심 모듈을 한 줄씩 뜯어보며 "
-        "남긴 캡처와, 그 위에서 쌓아 올린 연구 노트를 모아둡니다."
+        "Notes on database internals and code analysis, mostly centered on "
+        "CUBRID. The site captures storage, MVCC, lock manager, and similar "
+        "core modules at a line-by-line level, alongside research notes "
+        "built on top of those captures."
     )
     out.append("")
     out.append(
-        "사이드바의 explorer로 폴더를 탐색하거나, 우측 상단의 검색·그래프뷰를 "
-        "이용해 문서 사이를 점프할 수 있습니다."
+        "Browse the folder explorer on the left, or use the search and "
+        "graph view in the upper-right to jump between documents."
     )
     out.append("")
     out.append("## Categories")
@@ -96,9 +97,12 @@ def main() -> int:
             out.append(line)
         out.append("")
 
-    out.append("## 한국어")
+    out.append("## Languages")
     out.append("")
-    out.append("[/ko/](ko/) 트리에 한국어 버전이 있습니다. 영문판만 있는 문서는 ko/에서도 영문 그대로 노출됩니다.")
+    out.append(
+        "Korean translations live under [/ko/](ko/). Documents that exist only "
+        "in English are mirrored as-is in the Korean tree."
+    )
     out.append("")
 
     output.write_text("\n".join(out), encoding="utf-8")
