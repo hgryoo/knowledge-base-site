@@ -29,8 +29,7 @@ jobs:
           repository: hgryoo/knowledge-base
           path: knowledge-base
           fetch-depth: 0
-          # If knowledge-base is private, add a PAT secret with repo scope:
-          # token: ${{ secrets.KNOWLEDGE_BASE_TOKEN }}
+          token: ${{ secrets.KNOWLEDGE_BASE_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
