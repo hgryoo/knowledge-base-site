@@ -16,12 +16,18 @@ fi
 rm -rf "$SCRIPT_DIR/content"
 mkdir -p "$EN" "$KO"
 
-# en/: mirror source, drop *_ko.md, CLAUDE.md, and tooling state dirs
+# Folders excluded from the public site (private working assets)
+PRIVATE_EXCLUDES=(
+  --exclude='methodology/'
+)
+
+# en/: mirror source, drop *_ko.md, CLAUDE.md, tooling state, and private folders
 rsync -a \
   --exclude='CLAUDE.md' \
   --exclude='*_ko.md' \
   --exclude='.omc/' \
   --exclude='.claude/' \
+  "${PRIVATE_EXCLUDES[@]}" \
   "$SRC/" "$EN/"
 
 # ko/: mirror source (English files act as fallback when no _ko pair exists)
@@ -29,6 +35,7 @@ rsync -a \
   --exclude='CLAUDE.md' \
   --exclude='.omc/' \
   --exclude='.claude/' \
+  "${PRIVATE_EXCLUDES[@]}" \
   "$SRC/" "$KO/"
 
 # In ko/: rename foo_ko.md -> foo.md, overwriting any English partner
@@ -36,14 +43,7 @@ find "$KO" -type f -name '*_ko.md' -print0 | while IFS= read -r -d '' f; do
   mv -f "$f" "${f%_ko.md}.md"
 done
 
-# Top-level landing page that links into the two language trees
-cat > "$SCRIPT_DIR/content/index.md" <<'EOF'
----
-title: Knowledge Base
----
-
-- [English](en/)
-- [한국어](ko/)
-EOF
+# Generate landing page from frontmatter
+python3 "$SCRIPT_DIR/scripts/generate_index.py" "$EN" "$SCRIPT_DIR/content/index.md"
 
 echo "prebuild: en=$(find "$EN" -type f -name '*.md' | wc -l) md, ko=$(find "$KO" -type f -name '*.md' | wc -l) md"
