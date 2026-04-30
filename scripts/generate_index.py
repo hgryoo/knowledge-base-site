@@ -23,7 +23,7 @@ CATEGORY_ORDER = ["code-analysis", "research", "experiment", "ideas", "note"]
 
 
 def read_frontmatter(p: Path) -> dict[str, str]:
-    text = p.read_text(encoding="utf-8")
+    text = p.read_text(encoding="utf-8").lstrip()
     m = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
     if not m:
         return {}
