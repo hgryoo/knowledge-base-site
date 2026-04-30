@@ -6,6 +6,16 @@ import * as Plugin from "./quartz/plugins"
  *
  * See https://quartz.jzhao.xyz/configuration for more information.
  */
+
+// Build modes:
+//   default                - GitHub Pages: only the index page and the
+//                            code-analysis category are published
+//                            (WhitelistPaths filter applied below).
+//   QUARTZ_LOCAL_FULL=1    - Local LAN deploy: every curated doc under
+//                            knowledge/ is exposed. Used by
+//                            scripts/serve-local.sh.
+const isLocalFull = process.env.QUARTZ_LOCAL_FULL === "1"
+
 const config: QuartzConfig = {
   configuration: {
     pageTitle: "hgryoo's Knowledge Base",
@@ -82,9 +92,13 @@ const config: QuartzConfig = {
     ],
     filters: [
       Plugin.RemoveDrafts(),
-      Plugin.WhitelistPaths({
-        patterns: ["index", "*/code-analysis/**"],
-      }),
+      ...(isLocalFull
+        ? []
+        : [
+            Plugin.WhitelistPaths({
+              patterns: ["index", "*/code-analysis/**"],
+            }),
+          ]),
     ],
     emitters: [
       Plugin.AliasRedirects(),
