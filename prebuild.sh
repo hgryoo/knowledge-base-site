@@ -70,7 +70,15 @@ rsync -a \
   "$SRC/" "$KO/"
 
 if [[ -d "$SRC/ko" ]]; then
-  rsync -a \
+  # --copy-unsafe-links dereferences any symlink in $SRC/ko/ whose
+  # target points outside the source tree. The bilingual figure
+  # convention (since 2026-05-01) uses such symlinks: every
+  # `knowledge/ko/<...>/<doc>.assets` is a relative symlink to the
+  # canonical EN folder at `knowledge/<...>/<doc>.assets` (3 ups).
+  # This flag turns each symlink into a real copy of its referent
+  # so the built `content/ko/` tree carries real PNG files
+  # regardless of what the EN-baseline rsync above did.
+  rsync -a --copy-unsafe-links \
     "${COMMON_EXCLUDES[@]}" \
     ${PRIVATE_EXCLUDES[@]+"${PRIVATE_EXCLUDES[@]}"} \
     "$SRC/ko/" "$KO/"
