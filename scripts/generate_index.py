@@ -3,13 +3,21 @@
 frontmatter (`title`, `summary`) from each curated markdown file. Invoked by
 prebuild.sh.
 
+Honors QUARTZ_LOCAL_FULL=1 to mirror quartz.config.ts: in public-build
+mode only `code-analysis/` is published, so the landing page must list
+that category alone (otherwise links to non-published pages 404).
+
 Usage: generate_index.py <en_dir> <output_path>
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
+
+LOCAL_FULL = os.environ.get("QUARTZ_LOCAL_FULL", "0") == "1"
+PUBLISHED_CATEGORIES: set[str] | None = None if LOCAL_FULL else {"code-analysis"}
 
 CATEGORY_DESCRIPTIONS = {
     "code-analysis": "Open-source DBMS internals — currently a line-by-line read of the CUBRID codebase, broken down by storage, MVCC, and lock manager.",
@@ -47,6 +55,8 @@ def main() -> int:
 
     by_cat: dict[str, list[tuple[str, str, str]]] = {}
     for cat_dir in sorted(p for p in en_dir.iterdir() if p.is_dir()):
+        if PUBLISHED_CATEGORIES is not None and cat_dir.name not in PUBLISHED_CATEGORIES:
+            continue
         entries: list[tuple[str, str, str]] = []
         for md in sorted(cat_dir.rglob("*.md")):
             if md.name == "README.md":
@@ -68,12 +78,19 @@ def main() -> int:
     out.append("title: hgryoo's Knowledge Base")
     out.append("---")
     out.append("")
-    out.append(
-        "Notes on database internals and code analysis, mostly centered on "
-        "CUBRID. The site captures storage, MVCC, lock manager, and similar "
-        "core modules at a line-by-line level, alongside research notes "
-        "built on top of those captures."
-    )
+    if LOCAL_FULL:
+        out.append(
+            "Notes on database internals and code analysis, mostly centered on "
+            "CUBRID. The site captures storage, MVCC, lock manager, and similar "
+            "core modules at a line-by-line level, alongside research notes "
+            "built on top of those captures."
+        )
+    else:
+        out.append(
+            "Notes on database internals and code analysis, mostly centered on "
+            "CUBRID. The site captures storage, MVCC, lock manager, and similar "
+            "core modules at a line-by-line level."
+        )
     out.append("")
     out.append(
         "Browse the folder explorer on the left, or use the search and "
@@ -99,10 +116,16 @@ def main() -> int:
 
     out.append("## Languages")
     out.append("")
-    out.append(
-        "Korean translations live under [/ko/](ko/). Documents that exist only "
-        "in English are mirrored as-is in the Korean tree."
-    )
+    if LOCAL_FULL:
+        out.append(
+            "Korean translations live under [/ko/](ko/). Documents that exist only "
+            "in English are mirrored as-is in the Korean tree."
+        )
+    else:
+        out.append(
+            "Korean translations of the published pages live under "
+            "[/ko/code-analysis/](ko/code-analysis/)."
+        )
     out.append("")
 
     output.write_text("\n".join(out), encoding="utf-8")
