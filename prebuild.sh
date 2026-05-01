@@ -99,6 +99,8 @@ if [[ -d "$EN/ko" || -d "$KO/ko" ]]; then
   exit 1
 fi
 
+{ grep -RIl '^summary: "|"$' content || true; } | xargs -r sed -i 's/^summary: "|"$/summary: |/'
+
 # Generate landing page from frontmatter
 python3 "$SCRIPT_DIR/scripts/generate_index.py" "$EN" "$SCRIPT_DIR/content/index.md"
 
