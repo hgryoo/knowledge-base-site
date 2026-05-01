@@ -192,7 +192,16 @@ document.addEventListener("nav", async () => {
 
   mermaidImport ||= await import(
     // @ts-ignore
-    "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.esm.min.mjs"
+    // Pinned to 10.9.3 — Mermaid 11.x runs labels through a Markdown
+    // parser (Marked.js) that flags any list-marker / ordered-list /
+    // blockquote / table token in label content as
+    // "Unsupported markdown: <type>" and substitutes the error string
+    // for the label. CUBRID labels routinely contain symbol names with
+    // underscores, asterisks, plus signs, and "1. text" numbered
+    // prefixes — all of which trip the parser. 10.9.3 renders quoted
+    // labels as plain HTML/text without any markdown step, which is
+    // what we actually want here.
+    "https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.3/mermaid.esm.min.mjs"
   )
   const mermaid = mermaidImport.default
 
