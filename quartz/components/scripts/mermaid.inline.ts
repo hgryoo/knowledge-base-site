@@ -224,6 +224,15 @@ document.addEventListener("nav", async () => {
       startOnLoad: false,
       securityLevel: "loose",
       theme: darkMode ? "dark" : "base",
+      // Disable Mermaid 11.x label-markdown auto-wrap. Without this, any
+      // label containing bullet-marker patterns (" * ", "<br/>+ ", "1. ",
+      // "_*", "<br/>---", etc.) triggers "Unsupported markdown: <type>"
+      // (sometimes with an empty type) at render time. With
+      // markdownAutoWrap=false and htmlLabels=true, Mermaid renders quoted
+      // "..." labels as plain HTML and skips its own Markdown parser
+      // entirely.
+      markdownAutoWrap: false,
+      flowchart: { htmlLabels: true },
       themeVariables: {
         fontFamily: computedStyleMap["--codeFont"],
         primaryColor: computedStyleMap["--light"],
