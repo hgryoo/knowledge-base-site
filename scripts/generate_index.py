@@ -36,6 +36,7 @@ CATEGORY_ORDER = ["code-analysis", "research", "experiment", "ideas", "note"]
 # Each entry: (slug, display label). The order here is the display order.
 SUBCATEGORY_ORDER: dict[str, list[tuple[str, str]]] = {
     "code-analysis": [
+        ("overview",            "Overview & Reading Paths"),
         ("storage-engine",      "Storage Engine"),
         ("txn-recovery",        "Transaction & Recovery"),
         ("query-processing",    "Query Processing"),
