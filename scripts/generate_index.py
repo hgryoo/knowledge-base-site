@@ -29,6 +29,24 @@ CATEGORY_DESCRIPTIONS = {
 
 CATEGORY_ORDER = ["code-analysis", "research", "experiment", "ideas", "note"]
 
+# Per-category sub-grouping. When a doc carries a `subcategory:` frontmatter
+# field, it lands in the matching group below. Docs without `subcategory:`
+# fall through to a flat list at the end.
+#
+# Each entry: (slug, display label). The order here is the display order.
+SUBCATEGORY_ORDER: dict[str, list[tuple[str, str]]] = {
+    "code-analysis": [
+        ("storage-engine",      "Storage Engine"),
+        ("txn-recovery",        "Transaction & Recovery"),
+        ("query-processing",    "Query Processing"),
+        ("ddl-schema",          "DDL & Schema"),
+        ("replication-ha",      "Replication & HA"),
+        ("pl-language",         "Procedural Language"),
+        ("server-architecture", "Server Architecture"),
+        ("i18n-specialty",      "Internationalization & Specialty"),
+    ],
+}
+
 
 def read_frontmatter(p: Path) -> dict[str, str]:
     text = p.read_text(encoding="utf-8").lstrip()
@@ -53,19 +71,21 @@ def main() -> int:
     en_dir = Path(sys.argv[1])
     output = Path(sys.argv[2])
 
-    by_cat: dict[str, list[tuple[str, str, str]]] = {}
+    # Per category: list of (title, summary, rel, subcategory) tuples.
+    by_cat: dict[str, list[tuple[str, str, str, str]]] = {}
     for cat_dir in sorted(p for p in en_dir.iterdir() if p.is_dir()):
         if PUBLISHED_CATEGORIES is not None and cat_dir.name not in PUBLISHED_CATEGORIES:
             continue
-        entries: list[tuple[str, str, str]] = []
+        entries: list[tuple[str, str, str, str]] = []
         for md in sorted(cat_dir.rglob("*.md")):
             if md.name == "README.md":
                 continue
             fm = read_frontmatter(md)
             title = fm.get("title") or md.stem
             summary = fm.get("summary", "")
+            subcat = fm.get("subcategory", "")
             rel = md.relative_to(en_dir.parent).with_suffix("")
-            entries.append((title, summary, rel.as_posix()))
+            entries.append((title, summary, rel.as_posix(), subcat))
         if entries:
             by_cat[cat_dir.name] = entries
 
@@ -99,6 +119,35 @@ def main() -> int:
     out.append("")
     out.append("## Categories")
     out.append("")
+
+    # Emit a "Jump to:" anchor TOC for each category that has a defined
+    # subcategory taxonomy. Anchors must match Quartz's github-slugger
+    # behaviour: lowercase the label, drop `&`, replace spaces with `-`,
+    # then suffix the live count from this build (so the anchor stays
+    # in sync with the heading the script also emits below).
+    def _slug(label: str) -> str:
+        # `&` is stripped (becomes empty), surrounding spaces remain and
+        # get hyphen-converted, producing the consecutive `--` that
+        # github-slugger emits for tokens like "DDL & Schema".
+        return label.lower().replace("&", "").replace(" ", "-")
+
+    for cat in ordered:
+        sub_taxonomy = SUBCATEGORY_ORDER.get(cat)
+        if not sub_taxonomy:
+            continue
+        # Tally counts so we can suffix anchors and skip empty buckets.
+        from collections import Counter
+        counts = Counter(e[3] for e in by_cat[cat])
+        chips: list[str] = []
+        for slug, label in sub_taxonomy:
+            n = counts.get(slug, 0)
+            if not n:
+                continue
+            chips.append(f"[{label}](#{_slug(label)}-{n})")
+        if chips:
+            out.append(f"**Jump to {cat}:** " + " · ".join(chips))
+            out.append("")
+
     for cat in ordered:
         entries = by_cat[cat]
         out.append(f"### [{cat}](en/{cat}/) ({len(entries)})")
@@ -107,12 +156,48 @@ def main() -> int:
             out.append("")
             out.append(desc)
         out.append("")
-        for title, summary, rel in entries:
-            line = f"- [{title}]({rel})"
-            if summary:
-                line += f" — {summary}"
-            out.append(line)
-        out.append("")
+
+        # Group by subcategory if a taxonomy is defined for this category;
+        # otherwise emit a flat list as before.
+        sub_taxonomy = SUBCATEGORY_ORDER.get(cat)
+        if sub_taxonomy:
+            buckets: dict[str, list[tuple[str, str, str]]] = {
+                slug: [] for slug, _ in sub_taxonomy
+            }
+            untagged: list[tuple[str, str, str]] = []
+            for title, summary, rel, subcat in entries:
+                if subcat in buckets:
+                    buckets[subcat].append((title, summary, rel))
+                else:
+                    untagged.append((title, summary, rel))
+            for slug, label in sub_taxonomy:
+                bucket = buckets[slug]
+                if not bucket:
+                    continue
+                out.append(f"#### {label} ({len(bucket)})")
+                out.append("")
+                for title, summary, rel in bucket:
+                    line = f"- [{title}]({rel})"
+                    if summary:
+                        line += f" — {summary}"
+                    out.append(line)
+                out.append("")
+            if untagged:
+                out.append(f"#### Other ({len(untagged)})")
+                out.append("")
+                for title, summary, rel in untagged:
+                    line = f"- [{title}]({rel})"
+                    if summary:
+                        line += f" — {summary}"
+                    out.append(line)
+                out.append("")
+        else:
+            for title, summary, rel, _ in entries:
+                line = f"- [{title}]({rel})"
+                if summary:
+                    line += f" — {summary}"
+                out.append(line)
+            out.append("")
 
     out.append("## Languages")
     out.append("")
