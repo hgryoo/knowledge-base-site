@@ -81,10 +81,10 @@ do_build() {
 cmd_install() {
   require_systemd
 
-  local python_bin
-  python_bin="$(command -v python3 || true)"
-  if [[ -z "$python_bin" ]]; then
-    echo "ERROR: python3 not found; required for the static HTTP server" >&2
+  local node_bin
+  node_bin="$(command -v node || true)"
+  if [[ -z "$node_bin" ]]; then
+    echo "ERROR: node not found; required for serve-handler" >&2
     exit 1
   fi
 
@@ -100,7 +100,7 @@ Type=simple
 WorkingDirectory=$SCRIPT_DIR
 Environment=PORT=$PORT
 Environment=QUARTZ_LOCAL_FULL=$QUARTZ_LOCAL_FULL
-Environment=PYTHON_BIN=$python_bin
+Environment=NODE_BIN=$node_bin
 ExecStart=/bin/bash $SCRIPT_DIR/deploy.sh serve
 Restart=on-failure
 RestartSec=5
@@ -215,17 +215,18 @@ cmd_logs() {
 
 cmd_build_only() { do_build; }
 
-# What systemd ExecStart calls. Foreground; execs http.server and stays
-# in the foreground so systemd can supervise it. Builds on first start
-# (when public/ is absent) so a fresh install or post-reboot start has
-# something to serve, but does NOT rebuild on subsequent restarts —
-# that's what `refresh` is for.
+# What systemd ExecStart calls. Foreground; execs the static server and
+# stays in the foreground so systemd can supervise it. Builds on first
+# start (when public/ is absent) so a fresh install or post-reboot start
+# has something to serve, but does NOT rebuild on subsequent restarts —
+# that's what `refresh` is for. The server is a tiny serve-handler-based
+# node wrapper so clean URLs (`/foo/bar` -> `foo/bar.html`) work, which
+# python http.server can't do.
 cmd_serve() {
   if [[ ! -d "$SCRIPT_DIR/public" ]]; then
     do_build
   fi
-  cd "$SCRIPT_DIR/public"
-  exec "${PYTHON_BIN:-python3}" -m http.server "$PORT" --bind 0.0.0.0
+  exec "${NODE_BIN:-node}" "$SCRIPT_DIR/scripts/serve-static.mjs" "$SCRIPT_DIR/public"
 }
 
 usage() { sed -n '2,38p' "$0"; }
