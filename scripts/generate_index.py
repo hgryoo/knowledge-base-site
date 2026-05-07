@@ -37,6 +37,7 @@ CATEGORY_ORDER = ["code-analysis", "research", "experiment", "ideas", "note"]
 SUBCATEGORY_ORDER: dict[str, list[tuple[str, str]]] = {
     "code-analysis": [
         ("overview",            "Overview & Reading Paths"),
+        ("base-infra",          "Base / Infrastructure"),
         ("storage-engine",      "Storage Engine"),
         ("txn-recovery",        "Transaction & Recovery"),
         ("query-processing",    "Query Processing"),
@@ -127,10 +128,11 @@ def main() -> int:
     # then suffix the live count from this build (so the anchor stays
     # in sync with the heading the script also emits below).
     def _slug(label: str) -> str:
-        # `&` is stripped (becomes empty), surrounding spaces remain and
-        # get hyphen-converted, producing the consecutive `--` that
-        # github-slugger emits for tokens like "DDL & Schema".
-        return label.lower().replace("&", "").replace(" ", "-")
+        # `&` and `/` are stripped (become empty); surrounding spaces remain
+        # and get hyphen-converted, producing the consecutive `--` that
+        # github-slugger emits for tokens like "DDL & Schema" or
+        # "Base / Infrastructure".
+        return label.lower().replace("&", "").replace("/", "").replace(" ", "-")
 
     for cat in ordered:
         sub_taxonomy = SUBCATEGORY_ORDER.get(cat)
@@ -178,7 +180,7 @@ def main() -> int:
                 out.append(f"#### {label} ({len(bucket)})")
                 out.append("")
                 for title, summary, rel in bucket:
-                    line = f"- [{title}]({rel})"
+                    line = f"- [{title}]({rel}) | [KO]({rel.replace('en/', 'ko/', 1)})"
                     if summary:
                         line += f" — {summary}"
                     out.append(line)
@@ -187,14 +189,14 @@ def main() -> int:
                 out.append(f"#### Other ({len(untagged)})")
                 out.append("")
                 for title, summary, rel in untagged:
-                    line = f"- [{title}]({rel})"
+                    line = f"- [{title}]({rel}) | [KO]({rel.replace('en/', 'ko/', 1)})"
                     if summary:
                         line += f" — {summary}"
                     out.append(line)
                 out.append("")
         else:
             for title, summary, rel, _ in entries:
-                line = f"- [{title}]({rel})"
+                line = f"- [{title}]({rel}) | [KO]({rel.replace('en/', 'ko/', 1)})"
                 if summary:
                     line += f" — {summary}"
                 out.append(line)
