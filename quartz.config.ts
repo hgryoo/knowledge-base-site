@@ -32,8 +32,15 @@ const config: QuartzConfig = {
       "**/CLAUDE.md",
       "**/.omc/**",
       "**/.claude/**",
-      // TODO: 3.3MB textbook capture — Quartz 'attrs' processing error; debug separately
+      // TODO: large textbook captures — raw C++/Java template syntax
+      // (`<Map<LockObject<?>, ...>>`, etc.) confuses the markdown→HTML
+      // pipeline and breaks ContentPage emit. Same root cause as the
+      // 'attrs' processing error on database-system-concepts.md. Debug
+      // separately or fence the offending blocks at the source.
       "**/database-system-concepts.md",
+      "**/the-art-of-multiprocessor-programming.md",
+      "**/systems-performance-gregg.md",
+      "**/computer-systems-a-programmers-perspective.md",
     ],
     defaultDateType: "modified",
     theme: {

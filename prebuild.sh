@@ -101,6 +101,12 @@ fi
 
 { grep -RIl '^summary: "|"$' content || true; } | xargs -r sed -i 's/^summary: "|"$/summary: |/'
 
+# Quote YAML frontmatter scalars that start with a reserved indicator
+# (e.g. `title: [KO] ...`, `` summary: `foo` ... ``). Upstream content
+# occasionally lands in this shape and js-yaml's strict parse rejects
+# it; we quote in place under content/ so the build is self-healing.
+python3 "$SCRIPT_DIR/scripts/sanitize_frontmatter.py" "$SCRIPT_DIR/content"
+
 # Generate landing page from frontmatter
 python3 "$SCRIPT_DIR/scripts/generate_index.py" "$EN" "$SCRIPT_DIR/content/index.md"
 
