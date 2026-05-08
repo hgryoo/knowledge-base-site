@@ -14,7 +14,7 @@ const server = http.createServer((req, res) =>
   handler(req, res, {
     public: root,
     cleanUrls: true,
-    trailingSlash: true,
+    trailingSlash: false,
     directoryListing: false,
   }),
 )
