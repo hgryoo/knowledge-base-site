@@ -57,6 +57,17 @@ A `repository_dispatch` of type `knowledge-base-push` from the
 `knowledge-base` repo also triggers a rebuild so content edits ship
 without requiring a commit here.
 
+## Operations
+
+- `RENDERING-DIAGNOSIS.md` — runbook for "figures not rendering"
+  reports. Includes the diagnosis chain, the curl-based
+  verification recipe, and the named pitfalls (`shortest`-mode image
+  overprefix, absolute-vs-browser-resolved URL trap, trailingSlash
+  co-dependency). Read this before changing
+  `markdownLinkResolution` in `quartz.config.ts` or `trailingSlash`
+  in `scripts/serve-static.mjs` — the three settings are
+  co-dependent.
+
 ## Upstream
 
 Forked from [jackyzha0/quartz](https://github.com/jackyzha0/quartz)
