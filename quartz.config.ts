@@ -16,13 +16,23 @@ import * as Plugin from "./quartz/plugins"
 //                            scripts/serve-local.sh.
 const isLocalFull = process.env.QUARTZ_LOCAL_FULL === "1"
 
+// Skip Google Analytics during local dev (`npx quartz build --serve`,
+// which also covers serve-local.sh). Production CI runs `npx quartz build`
+// without --serve.
+const isDevServe = process.argv.includes("--serve")
+
 const config: QuartzConfig = {
   configuration: {
     pageTitle: "hgryoo's Knowledge Base",
     pageTitleSuffix: "",
     enableSPA: true,
     enablePopovers: true,
-    analytics: null,
+    analytics: isDevServe
+      ? null
+      : {
+          provider: "google",
+          tagId: "G-MLFTZW11Q0",
+        },
     locale: "en-US",
     baseUrl: "hgryoo.github.io/knowledge-base-site",
     ignorePatterns: [
